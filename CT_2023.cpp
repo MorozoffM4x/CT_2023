@@ -1,28 +1,33 @@
-﻿// CT_2023.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
-
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 
 using namespace std;
 
+//addr: maxodrom.ru (31.31.196.25)
+//base: u0632405_CT_2023
+//user: u0632405_max
+//Pass: jL2wJ8wE4syH7gM1
+
+
 int main()
 {
-    string filename = "D:\\Проекты\\CT_2023\\DATA_Files\\Facility2Constellation\\Facility-Anadyr1.txt";
-    ifstream input;
+    string filename = "DATA_Files\\Facility2Constellation\\Facility-Anadyr1.txt";
+    ifstream f;
 
-    input.open(filename);
+    f.open(filename);
 
-    if (!input.is_open()) {
+    if (!f.is_open()) {
         return 1;
     }
-    while (input) {
+    while (f) {
         string line;
-
-        basic_istream::getline(input, line, "Anadyr1 - To - KinoSat_110101");
+        
+        f >> line;
+        const char* c = line.c_str();
+        printf(c);
  
     }
 
-    input.close();
+    f.close();
     return 0;
 }
