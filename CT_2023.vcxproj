@@ -96,6 +96,10 @@
       <AdditionalLibraryDirectories>C:\vcpkg\installed\x86-windows\include;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AssemblyLinkResource>%(AssemblyLinkResource)</AssemblyLinkResource>
       <SpecifySectionAttributes>%(SpecifySectionAttributes)</SpecifySectionAttributes>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <AdditionalOptions>
+      </AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

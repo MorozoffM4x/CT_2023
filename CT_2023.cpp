@@ -10,6 +10,7 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/format.hpp>
 
+
 using namespace boost::filesystem;
 using namespace boost::posix_time;
 using namespace std;
@@ -107,7 +108,7 @@ int reader_csv(const char* file_name)
 string get_date_time(const char* SS_Time)
 {
     const char* m = SS_Time;
-    char s;
+    //char s;
     string day, month, year, date_time_final, mnth, time;
 
     map<string, int> months{
@@ -154,7 +155,35 @@ string get_date_time(const char* SS_Time)
 
 int merge_files(const char* file_path)
 {
-    string path = file_path;
-    cout << file_path << endl;
+    //string pathh = file_path;
+    string pathh = "L\"";
+    pathh.append(file_path);
+    pathh.append("\"");
+    // 
+    wstring widestr = std::wstring(pathh.begin(), pathh.end());
+    const wchar_t* widecstr = widestr.c_str();
+
+    wpath p{widecstr};
+    wcout << p.wstring() << '\n';
+
+
+    //wstring ws = p.wstring();
+    //string s(p.begin(), p.end());
+    //cout << s << endl;
+    //path p(pathh);
+
+
+    //for (auto i = directory_iterator(p); i != directory_iterator(); i++)
+    //{
+    //    if (!is_directory(i->path())) //we eliminate directories
+    //    {
+    //        cout << i->path().filename().string() << endl;
+    //    }
+    //    else
+    //    continue;
+    //}
+
+    //string path = file_path;
+    //cout << file_path << endl;
     return 0;
 }
