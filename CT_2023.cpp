@@ -16,6 +16,7 @@ using namespace std;
 
 #include "main.h"
 #include <format>
+#include <filesystem>
 
 const char* file_path = "DATA_Files\\CSV_Facility2Constellation\\";
 const char* file_name = "Facility-Anadyr1.csv";
@@ -47,6 +48,8 @@ int main()
     //f.close();
 
     //reader_csv(result); //чтение csv
+    merge_files(file_path);
+
     cout << get_date_time(SS_Time)<<endl; //Получение строки нужного формата с датой и временем
 
     boost::posix_time::time_duration diff;
@@ -148,3 +151,10 @@ string get_date_time(const char* SS_Time)
 
 }
 
+
+int merge_files(const char* file_path)
+{
+    string path = file_path;
+    cout << file_path << endl;
+    return 0;
+}
