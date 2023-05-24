@@ -4,8 +4,12 @@
 #include <sstream>
 #include <ctime>
 #include <time.h>
+#include <iomanip>
+#include <map>
 
 #include "main.h"
+#include <format>
+
 
 //#include <boost/date_time/posix_time/posix_time.hpp>
 //#include <boost/thread.hpp>
@@ -40,6 +44,9 @@ int main()
     //f.close();
 
     //reader_csv(result);
+
+
+
     cout << get_date_time(SS_Time);
 
     return 0;
@@ -84,8 +91,11 @@ char get_date_time(const char* SS_Time)
     const char* m = SS_Time;
     char s;
     string day, month, year, hour, min, sec, millis;
-    //printf(SS_Time);
 
+    map<string, int> months{
+        {"Jan", 1}, {"Feb", 2}, {"Mar", 3}, {"Apr", 4}, {"May", 5}, {"Jun", 6}, {"Jul", 7}, {"Aug", 8}, {"Sep", 9}, {"Oct", 10}, {"Nov", 11}, {"Dec", 12}
+    };
+    //format("a = {:02}", a)
     for (int a = 0; a != 2; a++) 
     {
         //s = a[m];
@@ -95,6 +105,7 @@ char get_date_time(const char* SS_Time)
     {
         //s = a[m];
         month.append(1, m[a]);
+        
     }
     for (int a = 7; a != 11; a++)
     {
@@ -121,18 +132,29 @@ char get_date_time(const char* SS_Time)
         //s = a[m];
         millis.append(1, m[a]);
     }
+    
     cout << day << " ";
-    cout << month << " ";
+    if (months[month] < 10)
+    {
+        cout << 0 << months[month] << " ";
+    }
+    else 
+        cout << months[month] << " ";
+    //cout << setw(2) << setfill('0') << month_e << " ";
+
     cout << year << " ";
     cout << hour << " ";
     cout << min << " ";
     cout << sec << " ";
     cout << millis;
+
     //printf(dt);
     //printf(a[1]);
     //struct std::tm when;
     //std::time(s);
     //string s = ;
+
     return 0;
 
 }
+
