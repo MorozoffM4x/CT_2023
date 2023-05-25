@@ -19,10 +19,12 @@ using namespace std;
 #include <format>
 #include <filesystem>
 
-const char* file_path = "DATA_Files\\CSV_Facility2Constellation\\";
-const char* file_name = "Facility-Anadyr1.csv";
+const char* file_path = "DATA_Files\\";
+const char* file_name = "Facility2Constellation.csv";
 const char* SS_Time = "13 Jun 2027 23:51:33.468";
 const char* SS2_Time = "14 Jun 2027 00:00:01.000";
+
+boost::posix_time::time_duration diff;
 
 //addr: maxodrom.ru (31.31.196.25)
 //base: u0632405_CT_2023
@@ -48,27 +50,14 @@ int main()
     //}
     //f.close();
 
-    //reader_csv(result); //чтение csv
-    merge_files(file_path);
+    reader_csv(result); //чтение csv
+    //merge_files(file_path);
 
-    cout << get_date_time(SS_Time)<<endl; //Получение строки нужного формата с датой и временем
+    //cout << get_date_time(SS_Time)<<endl; //Получение строки нужного формата с датой и временем
 
-    boost::posix_time::time_duration diff;
     
-    ptime xTimeStr(time_from_string(get_date_time(SS_Time)));
-    ptime xTimeStr2(time_from_string(get_date_time(SS2_Time)));
-    cout << xTimeStr << endl;
-    cout << xTimeStr2 << endl;
-    diff = xTimeStr2 - xTimeStr;
+    
 
-    cout << diff << endl; //Выводит разницу времени
-
-    long milliseconds = diff.total_milliseconds();
-    cout << milliseconds << endl; //Выводит разницу времени в милисекундах
-
-    boost::format output("%.3f");
-    output % (milliseconds / 1000.0);
-    std::cout << output << std::endl; //Выводит разницу времени в секундах
 
     return 0;
 }
@@ -86,18 +75,28 @@ int reader_csv(const char* file_name)
     while (getline(work_file, line))
     {
         stringstream stream(line); // Преобразование строки в поток
-        string Iter, Name, Access, Start_Time, Stop_Time, Duration;
+        string Iter, Name_station, Name_sat, Access, Start_Time, Stop_Time, Duration, Duration_bit; //Start Time,Stop Time,Duration,Duration_bit
         
         // Извлечение всех значений в этой строке
         getline(stream, Iter, delimiter);
-        getline(stream, Name, delimiter);
+        getline(stream, Name_station, delimiter);
+        getline(stream, Name_sat, delimiter);
         getline(stream, Access, delimiter);
         getline(stream, Start_Time, delimiter);
         getline(stream, Stop_Time, delimiter);
         getline(stream, Duration, delimiter);
+        getline(stream, Duration_bit, delimiter);
 
-        //cout << "Iter: " << Iter << "  Name: " << Name << "   Access num: " << Access << "   Start: " << Start_Time << "   Stop: " << Stop_Time << "   Duration: " << Duration << endl;
-        cout << Iter << "   " << Name << "  " << Access << "    " << Start_Time << "    " << Stop_Time << "     " << Duration << endl;
+        ptime TimeStart(time_from_string(Start_Time));
+        ptime TimeStop(time_from_string(Stop_Time));
+
+        diff = TimeStop - TimeStart;
+        long milliseconds = diff.total_milliseconds();
+
+        boost::format output("%.3f");
+        output % (milliseconds / 1000.0);
+
+        cout << Iter << "   " << Name_station << "  " << Name_sat << "    " << Access << "    " << TimeStart << "    " << TimeStop << "     " << output << "     " << Duration_bit << endl;
 
     }
     work_file.close();
@@ -187,3 +186,44 @@ int merge_files(const char* file_path)
     //cout << file_path << endl;
     return 0;
 }
+string get_d_t(const char* d_time1, const char* d_time2)
+{
+    ptime xTimeStr(time_from_string(d_time1));
+    ptime xTimeStr2(time_from_string(d_time2));
+    cout << xTimeStr << endl;
+    cout << xTimeStr2 << endl;
+    diff = xTimeStr2 - xTimeStr;
+
+    cout << diff << endl; //Выводит разницу времени
+
+    long milliseconds = diff.total_milliseconds();
+    cout << milliseconds << endl; //Выводит разницу времени в милисекундах
+
+    boost::format output("%.3f");
+    output % (milliseconds / 1000.0);
+    
+    return output.str();
+}
+// поиск минимальной даты
+// поиск максимальной даты
+// создать словарь спутников
+// создать словарь станций
+// найти какие станции в это время какие спутники видят
+// проверить в словаре наличие номера спутника у станции, если зоркий, то только с него сливаем до появления Кино, если Кино, то сливаем с него до конца
+// проверить спутники на условия заполнения или съёмки
+// проверить память спутника
+// проверить наличие станций в момент времени для передачи максимального объема
+// сравнить сколько секунд может принять станция и отдать спутник
+// если спутник снимает, то мем_ и тотал_мем увеличивается на 1 сек
+// если спутник передает, то мем_ уменьшается на 1 сек, а мем_ст_тот увеличивается на 1 сек
+// проверить приоритет Kinosat_110101 .. Kinosat_110510 - Киноспутник (высокий приоритет); Kinosat_110601 .. Kinosat_112010 - Зоркий (низкий приоритет)
+// если в момент времени у Кино достаточно данных для передачи, то Зоркий прерывается.
+// для каждого видимого спутника: если память заполнена на достаточное кол-во секунд для передачи в диапазоне видимости, то передавать. выставить номер спутника в словарь станции
+// 
+
+//---------------------------------------------------------------//
+
+// нужны словари: mem_sat, mem_sat_total, mem_station_total
+// нужны функции: sec_add(), find_min_max_datetime(), time_range_sat(), time_range_station()
+
+//---------------------------------------------------------------//
