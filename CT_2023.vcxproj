@@ -98,8 +98,7 @@
       <SpecifySectionAttributes>%(SpecifySectionAttributes)</SpecifySectionAttributes>
       <AdditionalDependencies>
       </AdditionalDependencies>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>-lboost_date_time</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
