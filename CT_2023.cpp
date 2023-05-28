@@ -6,6 +6,8 @@
 #include <time.h>
 #include <iomanip>
 #include <map>
+#include <list>
+#include <iterator>
 #include <boost/filesystem.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/format.hpp>
@@ -24,16 +26,18 @@ const char* file_name = "Facility2Constellation.csv";
 const char* SS_Time = "13 Jun 2027 23:51:33.468";
 const char* SS2_Time = "14 Jun 2027 00:00:01.000";
 
-map<string, int> sattelites;
-map<string, int> stations;
+map<string, int> sattelites_memory;
+map<string, int> sattelites_flags;
+map<string, int> stations_sat;
+map<string, int> stations_memory;
 string dt_min_stat;
 string dt_max_stat;
 map<string, string> dt_minmax_sat;
 map<string, string> dt_minmax_stat;
-string d_t = "2020-12-12 00:00:00.000";
-//map<string, string> dt_max_sat;// = "2020-12-12 00:00:00.000";
+list <string> stations;
 
-//undefined sattel_s = &sattelites;
+
+string d_t = "2020-12-12 00:00:00.000";
 
 boost::posix_time::time_duration diff;
 boost::posix_time::time_duration sec_fin;
@@ -48,9 +52,9 @@ boost::posix_time::time_duration sec_fin;
 
 int main()
 {
-    char result[100];
-    strcpy_s(result, file_path);
-    strcat_s(result, file_name);
+    //char result[100];
+    //strcpy_s(result, file_path);
+    //strcat_s(result, file_name);
 
     //const char* all_path = strcat(file_path, file_name);
     //file_name = "DATA_Files\\CSV_Facility2Constellation\\Facility-Anadyr1.csv";
@@ -64,12 +68,31 @@ int main()
 
     //reader_csv(result); //чтение csv
     //merge_files(file_path);
-    //set_sat_dic(sattelites);
-    //set_station_dic(stations);
-    //get_dt_minmax_sat(dt_minmax_sat);
-    //get_dt_minmax_station(dt_minmax_stat);
 
-    second_add(d_t);
+    //------------Инициализируем переменные------------//
+    set_sat_dic(sattelites_memory);
+    set_sat_dic(sattelites_flags);
+    set_station_dic(stations_sat);
+    set_station_dic(stations_memory);
+    //get_dt_minmax_sat(dt_minmax_sat);
+    // 
+    //cout << dt_minmax_sat["dt_min_stat"] << endl;
+    //cout << dt_minmax_sat["dt_max_stat"] << endl;
+    get_dt_minmax_station(dt_minmax_stat);
+    //cout << dt_minmax_stat["dt_min_stat"] << endl;
+    //cout << dt_minmax_stat["dt_max_stat"] << endl;
+    // 
+    //--------------------Основной цикл--------------------------//
+
+    for (dt_minmax_stat["dt_min_stat"]; dt_minmax_stat["dt_min_stat"] != dt_minmax_stat["dt_max_stat"]; dt_minmax_stat["dt_min_stat"] = second_add(dt_minmax_stat["dt_min_stat"]))
+    {
+        get_station_dt(stations);
+        //ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_stat"]));
+        cout << time_from_string(dt_minmax_stat["dt_min_stat"]) << "  ";
+        copy(stations.begin(), stations.end(), ostream_iterator<string>(cout, " "));
+        //cout << endl;
+    }
+
  
     //cout << second_add(d_t);
     
@@ -262,8 +285,8 @@ void get_dt_minmax_station(map<string, string> & stat)
             stat["dt_min_stat"] = Start_Time;
         }
     }
-    cout << stat["dt_min_stat"] << endl;
-    cout << stat["dt_max_stat"] << endl;
+    //cout << stat["dt_min_stat"] << endl;
+    //cout << stat["dt_max_stat"] << endl;
     
     work_file.close();
 }
@@ -347,6 +370,40 @@ void set_sat_dic(map<string, int> &sat_s)
     }
     work_file.close();
 }
+void get_station_dt(list <string> &stations)
+{
+    stations.clear();
+    dt_minmax_stat["dt_min_stat"];
+    ifstream work_file("DATA_Files\\Russia2Constellation.csv");
+    string line;
+    char delimiter = ',';
+    getline(work_file, line);
+    // Прочитали все строчки
+    while (getline(work_file, line))
+    {
+        stringstream stream(line);
+        string Iter, Name_station, Name_sat, Access, Start_Time, Stop_Time;
+        getline(stream, Iter, delimiter);
+        getline(stream, Name_station, delimiter);
+        getline(stream, Name_sat, delimiter);
+        getline(stream, Access, delimiter);
+        getline(stream, Start_Time, delimiter);
+        getline(stream, Stop_Time, delimiter);
+
+        ptime TimeStart(time_from_string(Start_Time));
+        ptime TimeStop(time_from_string(Stop_Time));
+        ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_sat"]));
+        
+        time_duration td1 = TimeNow - TimeStart;
+        time_duration td2 = TimeNow - TimeStop;
+        if (td1 < 0 & td2 )
+        {
+            stations.push_back(Name_station);
+        }
+    }
+    work_file.close();
+    //return stations;
+}
 
 string second_add(string d_t)
 {
@@ -362,7 +419,27 @@ string second_add(string d_t)
 
     return m;
 }
+string second_minus(string d_t)
+{
+    ptime TimeFirst(time_from_string(d_t) - seconds(1));
+    string m = to_simple_string(TimeFirst);
+    return m;
+}
 
+
+// Если станция занята спутником, то достиг ли он предела видимости и не равна ли память нулю.
+// Если нет, то спутнику минус 32 Мбайта (зоркий) или 128 Мбайт (киносат), станции плюс 32 Мбайта (зоркий) или 128 Мбайт (киносат).
+// Если станция не занята, то выбор спутника.
+// Выбрать спутник по условию:
+// 
+// ------------Флаги: 0 - свободен, 1 - фото, 2 - сливает--------------//
+//  Выбрать свободный спутник с максимальным объемом.
+//  Если спутники есть, то проверить их занятость.
+//  Проверить достижение минимума занятости.
+//  Если да, то киносат иначе зоркий.
+//  Если нет, то выбрать с максимальным объемом.
+// 
+// 
 // найти какие станции в это время какие спутники видят
 // прочитать и запомнить из result.csv номер итерации 
 // проверить в словаре наличие номера спутника у станции, если зоркий, то только с него сливаем до появления Кино, если Кино, то сливаем с него до конца

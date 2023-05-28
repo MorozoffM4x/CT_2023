@@ -9,3 +9,5 @@ void set_sat_dic(map<string, int> &sat_s);
 void get_dt_minmax_sat(map<string, string> & sat);
 void get_dt_minmax_station(map<string, string> & stat);
 string second_add(string d_t);
+string second_minus(string d_t);
+void get_station_dt(list <string>& stations);
