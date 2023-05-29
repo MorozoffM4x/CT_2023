@@ -12,3 +12,5 @@ string second_add(string d_t);
 string second_minus(string d_t);
 void get_station_dt(list <string>& stations);
 void parseCSV(string file, vector<vector<string>>& vec);
+void get_sattelites_dt(string sat, list <string>& sattelites);
+void time_taken(double start, double end);
