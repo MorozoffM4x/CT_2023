@@ -8,6 +8,7 @@
 #include <map>
 #include <list>
 #include <iterator>
+#include <vector>;
 #include <boost/filesystem.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/format.hpp>
@@ -26,6 +27,8 @@ const char* file_name = "Facility2Constellation.csv";
 const char* SS_Time = "13 Jun 2027 23:51:33.468";
 const char* SS2_Time = "14 Jun 2027 00:00:01.000";
 
+string satellite = "DATA_Files\\Russia2Constellation.csv";
+string facility = "DATA_Files\\Facility2Constellation.csv";
 map<string, int> sattelites_memory;
 map<string, int> sattelites_flags;
 map<string, int> stations_sat;
@@ -35,9 +38,11 @@ string dt_max_stat;
 map<string, string> dt_minmax_sat;
 map<string, string> dt_minmax_stat;
 list <string> stations;
-
+vector<vector<string>> Russia2Constellation; 
+vector<vector<string>> Facility2Constellation;
 
 string d_t = "2020-12-12 00:00:00.000";
+string d_t2 = "2027-06-01 04:20:46.789";
 
 boost::posix_time::time_duration diff;
 boost::posix_time::time_duration sec_fin;
@@ -70,29 +75,62 @@ int main()
     //merge_files(file_path);
 
     //------------Инициализируем переменные------------//
+    parseCSV(satellite, Russia2Constellation);
+    parseCSV(facility, Facility2Constellation);
+    //get_dt_minmax_sat(dt_minmax_sat);
+    //get_dt_minmax_station(dt_minmax_stat);
     set_sat_dic(sattelites_memory);
     set_sat_dic(sattelites_flags);
     set_station_dic(stations_sat);
     set_station_dic(stations_memory);
+    //map <string, string>::iterator it;
+    //for (it = sattelites_memory.begin(); it != sattelites_memory.end(); ++it)
+    //{
+    //    cout << "Страна: " << (*it).first << endl;
+    //    cout << "Столица: " << (*it).second << endl;
+    //}
+    //cout << sattelites_memory["Name_sat"] << endl;
+    //cout << sattelites_flags["Name_sat"] << endl;
+    //set_station_dic(stations_sat);
+    //set_station_dic(stations_memory);
+
     //get_dt_minmax_sat(dt_minmax_sat);
-    // 
+    //// 
     //cout << dt_minmax_sat["dt_min_stat"] << endl;
     //cout << dt_minmax_sat["dt_max_stat"] << endl;
-    get_dt_minmax_station(dt_minmax_stat);
+    
+    //-----------------------------------------------------------//
+    //get_dt_minmax_station(dt_minmax_stat);
     //cout << dt_minmax_stat["dt_min_stat"] << endl;
-    //cout << dt_minmax_stat["dt_max_stat"] << endl;
+    //copy(stations.begin(), stations.end(), ostream_iterator<string>(cout, " "));
+    //cout << endl;
+
+    // 
+    //for (vector<vector<string>>::iterator row = Russia2Constellation.begin(); row != Russia2Constellation.end(); ++row) {
+    //    for (vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
+
+    //        cout << *col;
+    //    }
+    //}
+    //for (size_t i = 0; i < Russia2Constellation.size(); ++i)  {
+    //    
+    //    cout << Russia2Constellation[i][4];
+    //}
+    //cout << Russia2Constellation[3][4];
+    //cout << endl;
     // 
     //--------------------Основной цикл--------------------------//
 
-    for (dt_minmax_stat["dt_min_stat"]; dt_minmax_stat["dt_min_stat"] != dt_minmax_stat["dt_max_stat"]; dt_minmax_stat["dt_min_stat"] = second_add(dt_minmax_stat["dt_min_stat"]))
-    {
-        get_station_dt(stations);
-        //ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_stat"]));
-        cout << time_from_string(dt_minmax_stat["dt_min_stat"]) << "  ";
-        copy(stations.begin(), stations.end(), ostream_iterator<string>(cout, " "));
-        //cout << endl;
-    }
-
+    //for (dt_minmax_stat["dt_min_stat"]; dt_minmax_stat["dt_min_stat"] != dt_minmax_stat["dt_max_stat"]; dt_minmax_stat["dt_min_stat"] = second_add(dt_minmax_stat["dt_min_stat"]))
+    //{
+    //    get_station_dt(stations);
+    //    ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_stat"]));
+    //    cout << time_from_string(dt_minmax_stat["dt_min_stat"]) << "  ";
+    //    copy(stations.begin(), stations.end(), ostream_iterator<string>(cout, " "));
+    //    cout << endl;
+    //}
+    
+    //-----------------------------------------------------------//
  
     //cout << second_add(d_t);
     
@@ -255,22 +293,13 @@ void get_dt_minmax_station(map<string, string> & stat)
 {
     stat["dt_min_stat"] = "2200-01-01 00:00:00.000";
     stat["dt_max_stat"] = "2020-12-12 00:00:00.000";
-    ifstream work_file("DATA_Files\\Facility2Constellation.csv");
-    string line;
-    char delimiter = ',';
-    getline(work_file, line);
 
-    while (getline(work_file, line))
-    {
-        stringstream stream(line);
-        string Iter, Name_station, Name_sat, Access, Start_Time, Stop_Time;
-        getline(stream, Iter, delimiter);
-        getline(stream, Name_station, delimiter);
-        getline(stream, Name_sat, delimiter);
-        getline(stream, Access, delimiter);
-        getline(stream, Start_Time, delimiter);
-        getline(stream, Stop_Time, delimiter);
+    string Start_Time, Stop_Time;
 
+    for (size_t i = 0; i < Facility2Constellation.size(); ++i) {
+
+        Start_Time = Facility2Constellation[i][4];
+        Stop_Time = Facility2Constellation[i][5];
         ptime TimeTemp(time_from_string(Stop_Time));
         ptime TimeTemp2(time_from_string(Start_Time));
         ptime TimeFinal(time_from_string(stat["dt_max_stat"]));
@@ -278,104 +307,119 @@ void get_dt_minmax_station(map<string, string> & stat)
 
         if (TimeTemp > TimeFinal)
         {
-            stat["dt_max_stat"] = Stop_Time;
+            stat["dt_max_sat"] = Stop_Time;
         }
         if (TimeTemp2 < TimeFinal2)
         {
-            stat["dt_min_stat"] = Start_Time;
+            stat["dt_min_sat"] = Start_Time;
         }
     }
+    cout << "Get_minmax_stat DONE..." << endl;
     //cout << stat["dt_min_stat"] << endl;
     //cout << stat["dt_max_stat"] << endl;
-    
-    work_file.close();
 }
 
-void get_dt_minmax_sat(map<string, string> &sat)
+//void get_dt_minmax_sat(map<string, string> &sat)
+//{
+//    sat["dt_min_sat"] = "2200-01-01 00:00:00.000";
+//    sat["dt_max_sat"] = "2020-12-12 00:00:00.000";
+//    ifstream work_file("DATA_Files\\Russia2Constellation.csv");
+//    string line;
+//    char delimiter = ',';
+//    getline(work_file, line);
+//
+//    while (getline(work_file, line))
+//    {
+//        stringstream stream(line);
+//        string Iter, Name_station, Name_sat, Access, Start_Time, Stop_Time;
+//        getline(stream, Iter, delimiter);
+//        getline(stream, Name_station, delimiter);
+//        getline(stream, Name_sat, delimiter);
+//        getline(stream, Access, delimiter);
+//        getline(stream, Start_Time, delimiter);
+//        getline(stream, Stop_Time, delimiter);
+//        
+//        ptime TimeTemp(time_from_string(Stop_Time)); 
+//        ptime TimeTemp2(time_from_string(Start_Time));
+//        ptime TimeFinal(time_from_string(sat["dt_max_sat"]));
+//        ptime TimeFinal2(time_from_string(sat["dt_min_sat"]));
+//        
+//        if (TimeTemp > TimeFinal)
+//        {
+//            sat["dt_max_sat"] = Stop_Time;
+//        }
+//        if (TimeTemp2 < TimeFinal2)
+//        {
+//            sat["dt_min_sat"] = Start_Time;
+//        }
+//    }
+//    cout << sat["dt_min_sat"] << endl;
+//    cout << sat["dt_max_sat"] << endl;
+//    
+//    work_file.close();
+//}
+void get_dt_minmax_sat(map<string, string>& sat)
 {
     sat["dt_min_sat"] = "2200-01-01 00:00:00.000";
     sat["dt_max_sat"] = "2020-12-12 00:00:00.000";
-    ifstream work_file("DATA_Files\\Russia2Constellation.csv");
-    string line;
-    char delimiter = ',';
-    getline(work_file, line);
 
-    while (getline(work_file, line))
-    {
-        stringstream stream(line);
-        string Iter, Name_station, Name_sat, Access, Start_Time, Stop_Time;
-        getline(stream, Iter, delimiter);
-        getline(stream, Name_station, delimiter);
-        getline(stream, Name_sat, delimiter);
-        getline(stream, Access, delimiter);
-        getline(stream, Start_Time, delimiter);
-        getline(stream, Stop_Time, delimiter);
-        
-        ptime TimeTemp(time_from_string(Stop_Time)); 
-        ptime TimeTemp2(time_from_string(Start_Time));
-        ptime TimeFinal(time_from_string(sat["dt_max_sat"]));
-        ptime TimeFinal2(time_from_string(sat["dt_min_sat"]));
-        
-        if (TimeTemp > TimeFinal)
-        {
-            sat["dt_max_sat"] = Stop_Time;
+        string Start_Time, Stop_Time;
+
+        for (size_t i = 0; i < Russia2Constellation.size(); ++i) {
+
+            Start_Time = Russia2Constellation[i][4];
+            Stop_Time = Russia2Constellation[i][5];
+            ptime TimeTemp(time_from_string(Stop_Time));
+            ptime TimeTemp2(time_from_string(Start_Time));
+            ptime TimeFinal(time_from_string(sat["dt_max_sat"]));
+            ptime TimeFinal2(time_from_string(sat["dt_min_sat"]));
+
+            if (TimeTemp > TimeFinal)
+            {
+              sat["dt_max_sat"] = Stop_Time;
+            }
+            if (TimeTemp2 < TimeFinal2)
+            {
+               sat["dt_min_sat"] = Start_Time;
+            }
         }
-        if (TimeTemp2 < TimeFinal2)
-        {
-            sat["dt_min_sat"] = Start_Time;
-        }
-    }
-    cout << sat["dt_min_sat"] << endl;
-    cout << sat["dt_max_sat"] << endl;
-    
-    work_file.close();
 }
 void set_station_dic(map<string, int>& stat_s)
 {
-    ifstream work_file("DATA_Files\\Facility2Constellation.csv");
-    string line;
-    char delimiter = ',';
-    getline(work_file, line);
-    while (getline(work_file, line))
-    {
-        stringstream stream(line); // Преобразование строки в поток
-        string Iter, Name_station; //Start Time,Stop Time,Duration,Duration_bit
-        getline(stream, Iter, delimiter);
-        getline(stream, Name_station, delimiter);
-        if (!stat_s.count(Name_station))
+    string Name_stat;
+    for (size_t i = 0; i < Facility2Constellation.size(); ++i) {
+
+        Name_stat = Facility2Constellation[i][1];
+
+        if (!stat_s.count(Name_stat))
         {
-            stat_s[Name_station] = 0;
+            stat_s[Name_stat] = 0;
+            cout << Name_stat << endl;
         }
     }
-    work_file.close();
+
 }
 void set_sat_dic(map<string, int> &sat_s)
 {
-    ifstream work_file("DATA_Files\\Russia2Constellation.csv");
-    string line;
-    char delimiter = ',';
-    getline(work_file, line);
-    // Прочитали все строчки
-    while (getline(work_file, line))
-    {
-        stringstream stream(line);
-        string Iter, Name_station, Name_sat;
-        getline(stream, Iter, delimiter);
-        getline(stream, Name_station, delimiter);
-        getline(stream, Name_sat, delimiter);
+    string Name_sat;
+    for (size_t i = 0; i < Russia2Constellation.size(); ++i) {
+
+        Name_sat = Russia2Constellation[i][2];
+        
         if (!sat_s.count(Name_sat))
         {
             sat_s[Name_sat] = 0;
+            cout << Name_sat << endl;
         }
     }
-    work_file.close();
 }
 void get_station_dt(list <string> &stations)
 {
     stations.clear();
-    dt_minmax_stat["dt_min_stat"];
+
     ifstream work_file("DATA_Files\\Russia2Constellation.csv");
     string line;
+
     char delimiter = ',';
     getline(work_file, line);
     // Прочитали все строчки
@@ -392,13 +436,11 @@ void get_station_dt(list <string> &stations)
 
         ptime TimeStart(time_from_string(Start_Time));
         ptime TimeStop(time_from_string(Stop_Time));
-        ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_sat"]));
-        
-        time_duration td1 = TimeNow - TimeStart;
-        time_duration td2 = TimeNow - TimeStop;
-        if (td1 < 0 & td2 )
+        ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_stat"]));
+
+        if (TimeNow > TimeStart && TimeNow < TimeStop)
         {
-            stations.push_back(Name_station);
+            stations.push_back(Name_sat);
         }
     }
     work_file.close();
@@ -424,6 +466,52 @@ string second_minus(string d_t)
     ptime TimeFirst(time_from_string(d_t) - seconds(1));
     string m = to_simple_string(TimeFirst);
     return m;
+}
+//void parseCSV(vector<vector<string>> & Russia2Constellation)
+//{
+//    ifstream data("DATA_Files\\Russia2Constellation.csv");
+//    string line;
+//    while (getline(data, line))
+//    {
+//        stringstream lineStream(line);
+//        string cell;
+//        vector<string> parsedRow;
+//        while (getline(lineStream, cell, ','))
+//        {
+//            parsedRow.push_back(cell);
+//        }
+//        Russia2Constellation.push_back(parsedRow);
+//    }
+//}
+void parseCSV(string file, vector<vector<string>>& vec)
+{
+    ifstream work_file(file);
+    string line;
+
+    char delimiter = ',';
+    getline(work_file, line);
+    // Прочитали все строчки
+    while (getline(work_file, line))
+    {
+        vector<string> parsedRow;
+        stringstream stream(line);
+        string Iter, Name_station, Name_sat, Access, Start_Time, Stop_Time;
+        getline(stream, Iter, delimiter);
+        getline(stream, Name_station, delimiter);
+        getline(stream, Name_sat, delimiter);
+        getline(stream, Access, delimiter);
+        getline(stream, Start_Time, delimiter);
+        getline(stream, Stop_Time, delimiter);
+        parsedRow.push_back(Iter);
+        parsedRow.push_back(Name_station);
+        parsedRow.push_back(Name_sat);
+        parsedRow.push_back(Access);
+        parsedRow.push_back(Start_Time);
+        parsedRow.push_back(Stop_Time);
+
+        vec.push_back(parsedRow);
+    }
+    work_file.close();
 }
 
 
