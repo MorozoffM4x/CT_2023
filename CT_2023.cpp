@@ -160,6 +160,7 @@ int main()
     {
         start = clock();
         get_station_dt(stations);
+        get_sattelites_dt(sattelites);
         //list<string>::iterator iter = stations.begin();
 
         //map <string, int>::iterator it = sattelites_memory.begin();
@@ -564,7 +565,7 @@ void get_station_dt(list <string> &stations)
     //work_file.close();
     ////return stations;
 }
-void get_sattelites_dt(string sattel, list <string> &sattelites)
+void get_sattelites_dt(list <string> &sattelites)
 {
     sattelites.clear();
  
@@ -583,7 +584,7 @@ void get_sattelites_dt(string sattel, list <string> &sattelites)
             ptime TimeStop(time_from_string(Stop_Time));
             ptime TimeNow(time_from_string(dt_minmax_sat["dt_min_sat"]));
 
-            if (TimeNow >= TimeStart && TimeNow <= TimeStop && Name_sat == sattel)
+            if (TimeNow >= TimeStart && TimeNow <= TimeStop)
             {
                 sattelites.push_back(Name_stat);
             }
