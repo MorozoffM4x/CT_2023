@@ -12,6 +12,9 @@
 #include <boost/filesystem.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/format.hpp>
+#include <omp.h>
+#include <chrono>
+
 
 
 using namespace boost::filesystem;
@@ -26,6 +29,8 @@ const char* file_path = "DATA_Files\\";
 const char* file_name = "Facility2Constellation.csv";
 const char* SS_Time = "13 Jun 2027 23:51:33.468";
 const char* SS2_Time = "14 Jun 2027 00:00:01.000";
+int g_nNumberOfThreads;
+
 
 string satellite = "DATA_Files\\Russia2Constellation.csv";
 string facility = "DATA_Files\\Facility2Constellation.csv";
@@ -58,7 +63,10 @@ boost::posix_time::time_duration sec_fin;
 
 int main()
 {
-    time_t start, end;
+    clock_t start, end;
+    int cores_count = thread::hardware_concurrency(); //Узнаем к-во ядер
+    cout << cores_count << " Cores in use." << endl;
+    g_nNumberOfThreads = cores_count;
     //char result[100];
     //strcpy_s(result, file_path);
     //strcat_s(result, file_name);
@@ -77,37 +85,37 @@ int main()
     //merge_files(file_path);
 
     //------------Инициализируем переменные------------//
-    time(&start);
+    start = clock();
     parseCSV(satellite, Russia2Constellation);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     parseCSV(facility, Facility2Constellation);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     get_dt_minmax_sat(dt_minmax_sat);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     get_dt_minmax_station(dt_minmax_stat);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     set_sat_dic(sattelites_memory);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     set_sat_dic(sattelites_flags);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     set_station_dic(stations_sat);
-    time(&end);
+    end = clock();
     time_taken(start, end);
-    time(&start);
+    start = clock();
     set_station_dic(stations_memory);
-    time(&end);
+    end = clock();
     time_taken(start, end);
     //map <string, string>::iterator it;
     //for (it = sattelites_memory.begin(); it != sattelites_memory.end(); ++it)
@@ -156,14 +164,14 @@ int main()
         //    cout << iter->first; //sattel;
         //    get_sattelites_dt(110101, sattelites);
         //}
-        time(&start);
+        start = clock();
         get_sattelites_dt("110101", sattelites);
         //get_station_dt(stations);
         //ptime TimeNow(time_from_string(dt_minmax_sat["dt_min_sat"]));
         cout << time_from_string(dt_minmax_sat["dt_min_sat"]) << "  ";
         copy(sattelites.begin(), sattelites.end(), ostream_iterator<string>(cout, " "));
         cout << endl;
-        time(&end);
+        end = clock();
         time_taken(start, end);
     }
     
@@ -332,10 +340,12 @@ void get_dt_minmax_station(map<string, string> & stat)
     stat["dt_min_stat"] = "2200-01-01 00:00:00.000";
     stat["dt_max_stat"] = "2020-12-12 00:00:00.000";
 
-    string Start_Time, Stop_Time;
-
-    for (size_t i = 0; i < Facility2Constellation.size(); ++i) {
-
+    
+    omp_set_num_threads(g_nNumberOfThreads);
+    #pragma omp critical
+    #pragma omp parallel for
+    for (int i = 0; i < Facility2Constellation.size(); ++i) {
+        string Start_Time, Stop_Time;
         Start_Time = Facility2Constellation[i][4];
         Stop_Time = Facility2Constellation[i][5];
         ptime TimeTemp(time_from_string(Stop_Time));
@@ -403,10 +413,11 @@ void get_dt_minmax_sat(map<string, string>& sat)
     sat["dt_min_sat"] = "2200-01-01 00:00:00.000";
     sat["dt_max_sat"] = "2020-12-12 00:00:00.000";
 
-        string Start_Time, Stop_Time;
-
-        for (size_t i = 0; i < Russia2Constellation.size(); ++i) {
-
+        
+        omp_set_num_threads(g_nNumberOfThreads);
+#pragma omp parallel for
+        for (int i = 0; i < Russia2Constellation.size(); ++i) {
+            string Start_Time, Stop_Time;
             Start_Time = Russia2Constellation[i][4];
             Stop_Time = Russia2Constellation[i][5];
             ptime TimeTemp(time_from_string(Stop_Time));
@@ -508,24 +519,29 @@ void get_station_dt(list <string> &stations)
 void get_sattelites_dt(string sattel, list <string> &sattelites)
 {
     sattelites.clear();
-    string Name_stat, Start_Time, Stop_Time, Name_sat;
-    for (size_t i = 0; i < Facility2Constellation.size(); ++i) 
-    {
-
-        Name_stat = Facility2Constellation[i][1];
-        Name_sat = Facility2Constellation[i][2];
-        Start_Time = Facility2Constellation[i][4];
-        Stop_Time = Facility2Constellation[i][5];
-
-        ptime TimeStart(time_from_string(Start_Time));
-        ptime TimeStop(time_from_string(Stop_Time));
-        ptime TimeNow(time_from_string(dt_minmax_sat["dt_min_sat"]));
-
-        if (TimeNow >= TimeStart && TimeNow <= TimeStop && Name_sat == sattel)
+ 
+    omp_set_num_threads(g_nNumberOfThreads);
+    #pragma omp parallel for
+        for (int i = 0; i < Facility2Constellation.size(); ++i)
         {
-            sattelites.push_back(Name_stat);
+            string Name_stat, Start_Time, Stop_Time, Name_sat;
+
+            Name_stat = Facility2Constellation[i][1];
+            Name_sat = Facility2Constellation[i][2];
+            Start_Time = Facility2Constellation[i][4];
+            Stop_Time = Facility2Constellation[i][5];
+
+            ptime TimeStart(time_from_string(Start_Time));
+            ptime TimeStop(time_from_string(Stop_Time));
+            ptime TimeNow(time_from_string(dt_minmax_sat["dt_min_sat"]));
+
+            if (TimeNow >= TimeStart && TimeNow <= TimeStop && Name_sat == sattel)
+            {
+                sattelites.push_back(Name_stat);
+            }
         }
-    }
+    
+
 }
 
 string second_add(string d_t)
@@ -598,7 +614,7 @@ void parseCSV(string file, vector<vector<string>>& vec)
 }
 void time_taken(double start, double end)
 {
-    double time_taken = double(end - start);
+    double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
     cout << "Time taken by program is : " << fixed
         << time_taken << setprecision(5);
     cout << " sec " << endl;
