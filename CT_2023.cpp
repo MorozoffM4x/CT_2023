@@ -14,6 +14,7 @@
 #include <boost/format.hpp>
 #include <omp.h>
 #include <chrono>
+#include <algorithm>
 
 
 
@@ -157,22 +158,67 @@ int main()
 
     for (dt_minmax_sat["dt_min_sat"]; dt_minmax_sat["dt_min_sat"] != dt_minmax_stat["dt_max_stat"]; dt_minmax_sat["dt_min_sat"] = second_add(dt_minmax_sat["dt_min_sat"]))
     {
+        start = clock();
+        get_station_dt(stations);
+        //list<string>::iterator iter = stations.begin();
+
+        //map <string, int>::iterator it = sattelites_memory.begin();
+        
+        //list<string>::iterator iter = find(stations.begin(), stations.end(), (*it).first.c_str());;
+        
+        //iter = find(stations.begin(), stations.end(), (*it).first.c_str());
+
+        //while (iter != stations.end())
+        for (auto iter : stations)
+        {
+           
+            if (sattelites_memory[iter] == 0)
+            {
+                sattelites_flags[iter] = 1;
+            }
+            if (sattelites_flags[iter] == 1)
+            {
+                sattelites_memory[iter] += 512;
+            }
+
+
+            cout << iter << " " << sattelites_flags[iter] << " " << sattelites_memory[iter] << endl;
+            // 
+            //if (iter != stations.end() && (*it).second == 0) // проверить на пересечение зоны фото и поставить флаг 1.
+            //{
+            //    sattelites_flags[(*it).first.c_str()] = 1; // 0 - простой, 1 - съёмка, 2 - слив на землю.
+            //    
+            //    cout << (*it).first << " " << sattelites_flags[(*it).first.c_str()] << endl;
+            //}
+            //
+            //if (iter != stations.end() && (*it).second == 1) // если флаг == 1, то... проверить на пересечение зоны фото и оставить флаг 1.
+            //{
+            //     sattelites_memory[(*it).first.c_str()] += 512; // скорость заполнения 512 Мб./сек
+            //     cout << (*it).first << " " << sattelites_memory[(*it).first.c_str()] << endl;
+            //}
+            
+        }
         //auto iter = sattelites_flags.begin();
         //while(iter != sattelites_flags.end())
         //{
         //    string sattel = iter->first;
         //    cout << iter->first; //sattel;
-        //    get_sattelites_dt(110101, sattelites);
+        //    //get_sattelites_dt(110101, sattelites);
         //}
-        start = clock();
-        get_sattelites_dt("110101", sattelites);
+        
+        /*start = clock();*/
+        //get_sattelites_dt("110101", sattelites);
         //get_station_dt(stations);
-        //ptime TimeNow(time_from_string(dt_minmax_sat["dt_min_sat"]));
-        cout << time_from_string(dt_minmax_sat["dt_min_sat"]) << "  ";
-        copy(sattelites.begin(), sattelites.end(), ostream_iterator<string>(cout, " "));
-        cout << endl;
+        
+        //cout << time_from_string(dt_minmax_sat["dt_min_sat"]) << "  ";
+        //copy(stations.begin(), stations.end(), ostream_iterator<string>(cout, " "));
+        //cout << endl;
+        //end = clock();
+        //time_taken(start, end);
+        cout << "---------------------------------------------------------------------------" << endl;
         end = clock();
         time_taken(start, end);
+        cout << "---------------------------------------------------------------------------" << endl;
     }
     
     //-----------------------------------------------------------//
@@ -440,7 +486,7 @@ void set_station_dic(map<string, int>& stat_s)
 {
     cout << "Create station list..." << endl;
     string Name_stat;
-    for (size_t i = 0; i < Facility2Constellation.size(); ++i) {
+    for (int i = 0; i < Facility2Constellation.size(); ++i) {
 
         Name_stat = Facility2Constellation[i][1];
 
@@ -456,7 +502,7 @@ void set_sat_dic(map<string, int> &sat_s)
 {
     cout << "Create sat list..." << endl;
     string Name_sat;
-    for (size_t i = 0; i < Russia2Constellation.size(); ++i) {
+    for (int i = 0; i < Russia2Constellation.size(); ++i) {
 
         Name_sat = Russia2Constellation[i][2];
         
@@ -471,16 +517,18 @@ void set_sat_dic(map<string, int> &sat_s)
 void get_station_dt(list <string> &stations)
 {
     stations.clear();
-    string Name_stat, Start_Time, Stop_Time;
-    for (size_t i = 0; i < Russia2Constellation.size(); ++i) {
-
+    
+    omp_set_num_threads(g_nNumberOfThreads);
+#pragma omp parallel for
+    for (int i = 0; i < Russia2Constellation.size(); ++i) {
+        string Name_stat, Start_Time, Stop_Time;
         Name_stat = Russia2Constellation[i][2];
         Start_Time = Russia2Constellation[i][4];
         Stop_Time = Russia2Constellation[i][5];
 
         ptime TimeStart(time_from_string(Start_Time));
         ptime TimeStop(time_from_string(Stop_Time));
-        ptime TimeNow(time_from_string(dt_minmax_stat["dt_min_stat"]));
+        ptime TimeNow(time_from_string(dt_minmax_sat["dt_min_sat"]));
 
         if (TimeNow > TimeStart && TimeNow < TimeStop)
         {
