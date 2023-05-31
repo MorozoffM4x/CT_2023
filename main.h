@@ -13,4 +13,6 @@ string second_minus(string d_t);
 void get_station_dt(list <string>& stations);
 void parseCSV(string file, vector<vector<string>>& vec);
 void get_sattelites_dt(list <string>& sattelites);
+void get_sattelites_list(list <string>& sattelites);
 void time_taken(double start, double end);
+bool sortcol(const vector<string>& v1, const vector<string>& v2);
