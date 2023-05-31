@@ -147,8 +147,8 @@ int main()
         cout << dt_minmax_sat["dt_min_sat"] << endl;
         
         start = clock();
-        get_station_dt(stations);
-        get_sattelites_dt(sattelites);
+        get_station_dt(stations); // фоткает землю или нет
+        get_sattelites_dt(sattelites); // какие станции в видимости
         //omp_set_num_threads(g_nNumberOfThreads);
         //#pragma omp parallel for
         for (const auto& elem : sattelites_memory)
@@ -177,20 +177,20 @@ int main()
             {
                 sattelites_memory[elem.first] += 512 * period;
             }
-            if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510)
+            if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510) // киносат
             {
                 if (sattelites_memory[elem.first] > 943718)
                 {
                     sattelites_flags[elem.first] = 2;
-                    sattelites_memory[elem.first] -= 512;
+                    sattelites_memory[elem.first] -= 128;
                 }
             }
             else
             {
-                if (sattelites_memory[elem.first] > 471859)
+                if (sattelites_memory[elem.first] > 471859) // зоркий
                 {
                     sattelites_flags[elem.first] = 2;
-                    sattelites_memory[elem.first] -= 512 * period;
+                    sattelites_memory[elem.first] -= 32 * period;
                 }
             }
             if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510)
@@ -198,7 +198,7 @@ int main()
                 if (sattelites_flags[elem.first] == 2)
                 {
                     
-                    sattelites_memory[elem.first] -= 512 * period;
+                    sattelites_memory[elem.first] -= 128 * period;
                 }
             }
             else
@@ -206,7 +206,7 @@ int main()
                 if (sattelites_flags[elem.first] == 2)
                 {
                     
-                    sattelites_memory[elem.first] -= 512 * period;
+                    sattelites_memory[elem.first] -= 32 * period;
                 }
             }
             cout << elem.first << " " << sattelites_flags[elem.first] << " " << sattelites_memory[elem.first] << endl;
