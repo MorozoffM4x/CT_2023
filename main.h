@@ -16,3 +16,4 @@ void get_sattelites_dt(list <string>& sattelites);
 void get_sattelites_list(list <string>& sattelites);
 void time_taken(double start, double end);
 bool sortcol(const vector<string>& v1, const vector<string>& v2);
+//void get_delta_time(void);

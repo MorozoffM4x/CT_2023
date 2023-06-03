@@ -28,21 +28,22 @@ using namespace std;
 
 const char* file_path = "DATA_Files\\";
 const char* file_name = "Facility2Constellation.csv";
-const char* SS_Time = "13 Jun 2027 23:51:33.468";
-const char* SS2_Time = "14 Jun 2027 00:00:01.000";
+//const char* SS_Time = "13 Jun 2027 23:51:33.468";
+//const char* SS2_Time = "14 Jun 2027 00:00:01.000";
 int g_nNumberOfThreads;
 const int max_mem_kino = 1048576;
 const int max_mem_zor = 524288;
-const int period = 1;
+const int period = 83;
 
 string satellite = "DATA_Files\\Russia2Constellation.csv";
 string facility = "DATA_Files\\Facility2Constellation.csv";
-map<string, int> sattelites_memory;
-map<string, int> sattelites_flags;
-map<string, int> stations_sat;
-map<string, int> stations_memory;
+map<string, int> sattelites_memory; // занятость памяти спутников
+map<string, int> sattelites_flags; // флаги спутников
+map<string, int> stations_sat;  // для хранения выбранной станции для спутника
+map<string, int> stations_memory; // итог слитого со спутников
 string dt_min_stat;
 string dt_max_stat;
+string delta_time;
 map<string, string> dt_minmax_sat;
 map<string, string> dt_minmax_stat;
 list <string> stations;
@@ -50,8 +51,8 @@ list <string> sattelites;
 vector<vector<string>> Russia2Constellation; 
 vector<vector<string>> Facility2Constellation;
 
-string d_t = "2020-12-12 00:00:00.000";
-string d_t2 = "2027-06-01 04:20:46.789";
+//string d_t = "2020-12-12 00:00:00.000";
+//string d_t2 = "2027-06-01 04:20:46.789";
 
 boost::posix_time::time_duration diff;
 boost::posix_time::time_duration sec_fin;
@@ -98,6 +99,8 @@ int main()
     set_station_dic(stations_memory);
     end = clock();
     time_taken(start, end);
+    //get_delta_time(void);
+
     //map <string, string>::iterator it;
     //for (it = sattelites_memory.begin(); it != sattelites_memory.end(); ++it)
     //{
@@ -142,76 +145,76 @@ int main()
     // 
     //--------------------Основной цикл--------------------------//
 
-    for (dt_minmax_sat["dt_min_sat"]; dt_minmax_sat["dt_min_sat"] != dt_minmax_stat["dt_max_stat"]; dt_minmax_sat["dt_min_sat"] = second_add(dt_minmax_sat["dt_min_sat"]))
+    for (dt_minmax_stat["dt_min_stat"]; dt_minmax_stat["dt_min_stat"] != dt_minmax_stat["dt_max_stat"]; dt_minmax_stat["dt_min_stat"] = second_add(dt_minmax_stat["dt_min_stat"]))
     {
-        cout << dt_minmax_sat["dt_min_sat"] << endl;
+        
         
         start = clock();
-        get_station_dt(stations); // фоткает землю или нет
-        get_sattelites_dt(sattelites); // какие станции в видимости
-        //omp_set_num_threads(g_nNumberOfThreads);
-        //#pragma omp parallel for
-        for (const auto& elem : sattelites_memory)
-        {
-            list<string>::iterator it;
-            it = find(stations.begin(), stations.end(), elem.first);
-            if (it != stations.end())
-            {
-                sattelites_flags[elem.first] = 1;
-                sattelites_memory[elem.first] += 512 * period;
-            }
-            else
-            {
-                sattelites_flags[elem.first] = 0;
-            }
+        //get_station_dt(stations); // фоткает землю или нет
+        //get_sattelites_dt(sattelites); // какие станции в видимости
+        ////omp_set_num_threads(g_nNumberOfThreads);
+        ////#pragma omp parallel for
+        //for (const auto& elem : sattelites_memory)
+        //{
+        //    list<string>::iterator it;
+        //    it = find(stations.begin(), stations.end(), elem.first);
+        //    if (it != stations.end())
+        //    {
+        //        sattelites_flags[elem.first] = 1;
+        //        sattelites_memory[elem.first] += 512 * period;
+        //    }
+        //    else
+        //    {
+        //        sattelites_flags[elem.first] = 0;
+        //    }
 
-            //for (auto iter : stations)
-            //{
-            //    if (sattelites_memory[elem.first] < 4096)
-            //    {
-            //        sattelites_flags[elem.first] = 1;
-            //    }
-            //}
+        //    //for (auto iter : stations)
+        //    //{
+        //    //    if (sattelites_memory[elem.first] < 4096)
+        //    //    {
+        //    //        sattelites_flags[elem.first] = 1;
+        //    //    }
+        //    //}
 
-            if (sattelites_flags[elem.first] == 1)
-            {
-                sattelites_memory[elem.first] += 512 * period;
-            }
-            if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510) // киносат
-            {
-                if (sattelites_memory[elem.first] > 943718)
-                {
-                    sattelites_flags[elem.first] = 2;
-                    sattelites_memory[elem.first] -= 128;
-                }
-            }
-            else
-            {
-                if (sattelites_memory[elem.first] > 471859) // зоркий
-                {
-                    sattelites_flags[elem.first] = 2;
-                    sattelites_memory[elem.first] -= 32 * period;
-                }
-            }
-            if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510)
-            {
-                if (sattelites_flags[elem.first] == 2)
-                {
-                    
-                    sattelites_memory[elem.first] -= 128 * period;
-                }
-            }
-            else
-            {
-                if (sattelites_flags[elem.first] == 2)
-                {
-                    
-                    sattelites_memory[elem.first] -= 32 * period;
-                }
-            }
-            cout << elem.first << " " << sattelites_flags[elem.first] << " " << sattelites_memory[elem.first] << endl;
+        //    if (sattelites_flags[elem.first] == 1)
+        //    {
+        //        sattelites_memory[elem.first] += 512 * period;
+        //    }
+        //    if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510) // киносат
+        //    {
+        //        if (sattelites_memory[elem.first] > 943718)
+        //        {
+        //            sattelites_flags[elem.first] = 2;
+        //            sattelites_memory[elem.first] -= 128;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (sattelites_memory[elem.first] > 471859) // зоркий
+        //        {
+        //            sattelites_flags[elem.first] = 2;
+        //            sattelites_memory[elem.first] -= 32 * period;
+        //        }
+        //    }
+        //    if (stoi(elem.first) >= 110101 && stoi(elem.first) <= 110510)
+        //    {
+        //        if (sattelites_flags[elem.first] == 2)
+        //        {
+        //            
+        //            sattelites_memory[elem.first] -= 128 * period;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (sattelites_flags[elem.first] == 2)
+        //        {
+        //            
+        //            sattelites_memory[elem.first] -= 32 * period;
+        //        }
+        //    }
+        //    cout << elem.first << " " << sattelites_flags[elem.first] << " " << sattelites_memory[elem.first] << endl;
 
-        }
+        //}
 
         //list<string>::iterator iter = stations.begin();
         //map <string, int>::iterator it = sattelites_memory.begin();
@@ -290,28 +293,12 @@ int main()
         //time_taken(start, end);
         
         cout << "---------------------------------------------------------------------------" << endl;
+        //cout << dt_minmax_stat["dt_min_stat"] << endl;
         end = clock();
         time_taken(start, end);
         cout << "---------------------------------------------------------------------------" << endl;
     }
-    
-    //-----------------------------------------------------------//
- 
-    //cout << second_add(d_t);
-    
-    //for (auto& elem : sattelites)
-    //{
-    //    std::cout << elem.first << " " << elem.second << " " << endl;
-    //}
-    //for (auto& elem : stations)
-    //{
-    //    std::cout << elem.first << " " << elem.second << " " << endl;
-    //}
-    //cout << dt_max_sat << endl;
-
-    //cout << get_date_time(SS_Time)<<endl; //Получение строки нужного формата с датой и временем
-
-    return 0;
+        return 0;
 }
 
 int reader_csv(const char* file_name)
@@ -354,7 +341,6 @@ int reader_csv(const char* file_name)
     return 0;
     
 }
-
 string get_date_time(const char* SS_Time)
 {
     const char* m = SS_Time;
@@ -399,8 +385,6 @@ string get_date_time(const char* SS_Time)
 
     return date_time_final;
 }
-
-
 int merge_files(const char* file_path)
 {
     //string pathh = file_path;
@@ -453,15 +437,20 @@ string get_d_t(const char* d_time1, const char* d_time2)
     
     return output.str();
 }
+string second_minus(string d_t)
+{
+    ptime TimeFirst(time_from_string(d_t) - seconds(1));
+    string m = to_simple_string(TimeFirst);
+    return m;
+}
+
 void get_dt_minmax_station(map<string, string> & stat)
 {
     cout << "Create minmax station time..." << endl;
     stat["dt_min_stat"] = "2200-01-01 00:00:00.000";
     stat["dt_max_stat"] = "2020-12-12 00:00:00.000";
 
-    
     omp_set_num_threads(g_nNumberOfThreads);
-    #pragma omp critical
     #pragma omp parallel for
     for (int i = 0; i < Facility2Constellation.size(); ++i) {
         string Start_Time, Stop_Time;
@@ -481,9 +470,6 @@ void get_dt_minmax_station(map<string, string> & stat)
             stat["dt_min_stat"] = Start_Time;
         }
     }
-    
-    //cout << stat["dt_min_stat"] << endl;
-    //cout << stat["dt_max_stat"] << endl;
     cout << "Done" << endl;
 }
 void get_dt_minmax_sat(map<string, string>& sat)
@@ -535,6 +521,7 @@ void set_sat_dic(map<string, int> &sat_s)
 {
     cout << "Create sat list..." << endl;
     string Name_sat;
+
     for (int i = 0; i < Russia2Constellation.size(); ++i) {
 
         Name_sat = Russia2Constellation[i][2];
@@ -552,7 +539,7 @@ void get_station_dt(list <string> &stations)
     stations.clear();
     
     omp_set_num_threads(g_nNumberOfThreads);
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < Russia2Constellation.size(); ++i) {
         string Name_stat, Start_Time, Stop_Time;
         Name_stat = Russia2Constellation[i][2];
@@ -597,7 +584,7 @@ void get_station_dt(list <string> &stations)
     //work_file.close();
     ////return stations;
 }
-void get_sattelites_dt(list <string> &sattelites)
+void get_sattelites_dt(list <string> &sattelites) // Надо подумать как выбирать станцию...
 {
     sattelites.clear();
     int s = 100;
@@ -627,12 +614,6 @@ void get_sattelites_dt(list <string> &sattelites)
 string second_add(string d_t)
 {
     ptime TimeFirst(time_from_string(d_t)+seconds(period));
-    string m = to_simple_string(TimeFirst);
-    return m;
-}
-string second_minus(string d_t)
-{
-    ptime TimeFirst(time_from_string(d_t) - seconds(1));
     string m = to_simple_string(TimeFirst);
     return m;
 }
@@ -670,7 +651,7 @@ void parseCSV(string file, vector<vector<string>>& vec)
     }
     work_file.close();
     cout << "Done" << endl;
-    cout << "Sorting" << endl;
+    cout << "Sorting..." << endl;
     sort(vec.begin(), vec.end(), sortcol);
     cout << "Done" << endl;
 }
@@ -687,6 +668,39 @@ bool sortcol(const vector<string>& v1, const vector<string>& v2)
     ptime TimeTemp2(time_from_string(v2[4]));
     return TimeTemp1 < TimeTemp2;
 }
+//void get_delta_time(void)
+//{
+//    string Name_sat, Start_Time;
+//    int numsat = 0;
+//    list <string> sattelites_2;
+//    Start_Time = Russia2Constellation[i][4];
+//    for (int i = 0; i < Russia2Constellation.size(); ++i) {
+//
+//        Name_sat = Russia2Constellation[i][2];
+//
+//        if (!sat_s.count(Name_sat))
+//        {
+//            stations_2.push_back(Name_stat);
+//            //cout << Name_sat << endl;
+//        }
+//    }
+//
+//    ptime xTimeStr(time_from_string(d_time1));
+//    ptime xTimeStr2(time_from_string(d_time2));
+//    cout << xTimeStr << endl;
+//    cout << xTimeStr2 << endl;
+//    diff = xTimeStr2 - xTimeStr;
+//
+//    cout << diff << endl; //Выводит разницу времени
+//
+//    long milliseconds = diff.total_milliseconds();
+//    cout << milliseconds << endl; //Выводит разницу времени в милисекундах
+//
+//    boost::format output("%.3f");
+//    output % (milliseconds / 1000.0);
+//    delta_time = output.str();
+//   
+//}
 
 
 // Если станция занята спутником, то достиг ли он предела видимости и не равна ли память нулю.
